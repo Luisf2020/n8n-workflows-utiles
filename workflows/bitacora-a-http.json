@@ -1,0 +1,44 @@
+{
+  "name": "Cron -> resumen diario -> HTTP",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 8 * * *" }] } },
+      "id": "1",
+      "name": "Cada dia 8:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const hoy = new Date().toISOString().slice(0, 10);\nreturn [{ json: { fecha: hoy, resumen: `Reporte generado ${hoy}` } }];"
+      },
+      "id": "2",
+      "name": "Construir resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://example.com/webhook/resumen",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      },
+      "id": "3",
+      "name": "Enviar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Cada dia 8:00": { "main": [[{ "node": "Construir resumen", "type": "main", "index": 0 }]] },
+    "Construir resumen": { "main": [[{ "node": "Enviar", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "pinData": {}
+}

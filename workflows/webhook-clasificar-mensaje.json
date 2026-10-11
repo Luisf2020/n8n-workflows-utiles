@@ -1,0 +1,43 @@
+{
+  "name": "Webhook -> clasificar mensaje -> responder",
+  "nodes": [
+    {
+      "parameters": { "path": "clasificar", "httpMethod": "POST" },
+      "id": "1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "webhookId": "clasificar-node"
+    },
+    {
+      "parameters": {
+        "jsCode": "const texto = ($json.body?.mensaje ?? \"\").toString().toLowerCase();\nconst urgente = /urgente|caido|error|urgent/.test(texto);\nconst categoria = /factura|pago|cobro/.test(texto) ? \"facturacion\" : /soporte|ayuda|demo/.test(texto) ? \"soporte\" : \"general\";\nreturn [{ json: { categoria, prioridad: urgente ? \"alta\" : \"normal\", texto } }];"
+      },
+      "id": "2",
+      "name": "Clasificar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "options": {},
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, categoria: $json.categoria, prioridad: $json.prioridad } }}"
+      },
+      "id": "3",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Clasificar", "type": "main", "index": 0 }]] },
+    "Clasificar": { "main": [[{ "node": "Responder", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "pinData": {}
+}
